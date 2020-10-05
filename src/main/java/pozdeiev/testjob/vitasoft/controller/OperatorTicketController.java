@@ -39,7 +39,9 @@ public class OperatorTicketController {
         val pageRequest = PageRequest.of(page - 1, 20);
         val tickets = ticketRepository.findByStatus(Ticket.Status.SENT, pageRequest);
 
-        return CommonResponse.success(tickets.stream().map(TicketDto::of).collect(Collectors.toList()));
+        return CommonResponse.success(tickets.stream()
+            .map(ticket -> TicketDto.of(ticket).withHyphenizedText())
+            .collect(Collectors.toList()));
     }
 
     @PutMapping("/{id}/accept")
