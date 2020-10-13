@@ -2,15 +2,14 @@ package pozdeiev.testjob.vitasoft.controller;
 
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pozdeiev.testjob.vitasoft.model.*;
-import pozdeiev.testjob.vitasoft.repository.TicketRepository;
 import pozdeiev.testjob.vitasoft.repository.UserRepository;
+import pozdeiev.testjob.vitasoft.service.TicketService;
 
 import javax.transaction.Transactional;
 import javax.validation.constraints.Min;
@@ -30,12 +29,12 @@ public class UserTicketController {
 
     public static final String URI = "/user/ticket";
 
-    private final TicketRepository ticketRepository;
+    private final TicketService ticketService;
     private final UserRepository userRepository;
 
     @Autowired
-    public UserTicketController(TicketRepository ticketRepository, UserRepository userRepository) {
-        this.ticketRepository = ticketRepository;
+    public UserTicketController(TicketService ticketService, UserRepository userRepository) {
+        this.ticketService = ticketService;
         this.userRepository = userRepository;
     }
 
@@ -50,7 +49,7 @@ public class UserTicketController {
         ticket.setAuthor(user);
         ticket.setStatus(DRAFT);
         ticket.setText(ticketDto.getText());
-        ticketRepository.save(ticket);
+        ticketService.save(ticket);
 
         return CommonResponse.success(TicketDto.of(ticket));
     }
@@ -68,8 +67,7 @@ public class UserTicketController {
         @RequestParam(defaultValue = "1") @Min(1) int page
     ) {
         val user = getUserBy(userDetails);
-        val pageRequest = PageRequest.of(page - 1, 20);
-        val tickets = ticketRepository.findByAuthor(user, pageRequest);
+        val tickets = ticketService.findByAuthor(user, page);
 
         return CommonResponse.success(tickets.stream().map(TicketDto::of).collect(Collectors.toList()));
     }
@@ -88,7 +86,7 @@ public class UserTicketController {
         }
 
         ticket.setText(ticketDto.getText());
-        ticketRepository.save(ticket);
+        ticketService.save(ticket);
 
         return CommonResponse.success(TicketDto.of(ticket));
     }
@@ -100,7 +98,7 @@ public class UserTicketController {
 
         if (!ticket.getStatus().equals(SENT)) {
             ticket.setStatus(SENT);
-            ticketRepository.save(ticket);
+            ticketService.save(ticket);
         }
 
         return CommonResponse.success(TicketDto.of(ticket));
@@ -108,8 +106,7 @@ public class UserTicketController {
 
     private Ticket getTicketBy(UserDetails userDetails, Long id) {
         val user = getUserBy(userDetails);
-        val ticket = ticketRepository.findById(id)
-            .orElseThrow(NotFoundException::new);
+        val ticket = ticketService.findById(id);
 
         if (!user.equals(ticket.getAuthor())) {
             throw new BadRequestException();
