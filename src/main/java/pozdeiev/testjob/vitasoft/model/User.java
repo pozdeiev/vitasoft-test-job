@@ -28,9 +28,6 @@ public class User {
     @ElementCollection
     private Set<Role> roles = new HashSet<>();
 
-//    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, orphanRemoval = true)
-//    private List<Ticket> tickets;
-
     public static User of(Long id) {
         val user = new User();
         user.id = id;
