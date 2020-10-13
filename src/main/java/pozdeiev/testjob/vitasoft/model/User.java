@@ -28,13 +28,6 @@ public class User {
     @ElementCollection
     private Set<Role> roles = new HashSet<>();
 
-    public static User of(Long id) {
-        val user = new User();
-        user.id = id;
-
-        return user;
-    }
-
     public static User of(String login, String password, Role ...roles) {
         val user = new User();
         user.login = login;
